@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+	<Type Name="_Word">
+		<DisplayString>Name: {Name,s}</DisplayString>
+	</Type>
+
+
+	<Type Name="_Object">
+		<DisplayString Condition="Type.ThisType == NULLObjectType">Type: NULLObject</DisplayString>
+		<DisplayString Condition="Type.ThisType == IntObjectType">Type: IntObject</DisplayString>
+		<DisplayString Condition="Type.ThisType == ObjectPtrType">Type: ObjectPtr</DisplayString>
+		<DisplayString Condition="Type.ThisType == WordRefType">Type: WordRefObject</DisplayString>
+		<DisplayString Condition="Type.ThisType == CodeAddressType">Type: CodeAddressObject</DisplayString>
+		<Expand>
+			<!-- Show type-specific data by casting based on Type -->
+			<Synthetic Name="[Int]" Condition="Type.ThisType == IntObjectType">
+				<DisplayString>{i}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Ptr]" Condition="Type.ThisType == ObjectPtrType">
+				<DisplayString>{Ptr}</DisplayString>
+				<Expand>
+					<Item Name="[Object]">Ptr</Item>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="[Word]" Condition="Type.ThisType == WordRefType">
+				<DisplayString>{Word}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[CA]" Condition="Type.ThisType == CodeAddressType">
+				<DisplayString>{CA}</DisplayString>
+			</Synthetic>
+
+			<!-- Walk Objects that follow this Object's address -->
+			<CustomListItems MaxItemsPerView="5" IncludeView="array">
+				<Variable Name="ptr" InitialValue="this" />
+				<Variable Name="size" InitialValue="0" />
+				<!--
+				<Variable Name="end" InitialValue="0" />
+				-->
+
+				<Loop>
+					<Item>ptr</Item>
+
+					<!-- stop AFTER we found the last NULLObject -->
+					<!-- 
+					<Break Condition="end == 1"/> 
+					-->
+
+					<!-- Advance ptr by the Object type size -->
+					<If Condition="ptr->Type.ThisType == NULLObjectType">
+						<Exec>size = 1</Exec>
+					</If>
+					<If Condition="ptr->Type.ThisType == IntObjectType">
+						<Exec>size = 3</Exec>
+					</If>
+					<If Condition="ptr->Type.ThisType == ObjectPtrType">
+						<Exec>size = 9</Exec>
+					</If>
+					<If Condition="ptr->Type.ThisType == WordRefType">
+						<Exec>size = 9</Exec>
+					</If>
+					<If Condition="ptr->Type.ThisType == CodeAddressType">
+						<Exec>size = 9</Exec>
+					</If>
+
+					<!-- must walk ptr by variable Object size, as bytes -->
+					<Exec>ptr = (_Object*)((char*)ptr + size)</Exec>
+
+					<!-- Is the next one the end? -->
+					<!-- 
+					<If Condition="(ptr->Type &amp; 15) == 0">
+						<Exec>end = 1</Exec>
+					</If>
+					-->
+
+				</Loop>
+			</CustomListItems>			
+			
+		</Expand>
+	</Type>
+	
+</AutoVisualizer>

@@ -1,0 +1,72 @@
+	74755 CONSTANT RAND1
+	1309 CONSTANT RAND2
+	13849 CONSTANT RAND3
+	65535 CONSTANT RAND4
+
+	VARIABLE SEED 
+	RAND1 SEED !
+
+
+	: RAND
+
+		SEED @
+		RAND2 *
+		RAND3 +
+		RAND4 AND
+
+		SEED !
+
+		SEED @
+	;
+	
+	6000 CONSTANT SIZE
+	SIZE 1- cell * VARIABLE INTS ALLOT
+
+
+	: INIT
+		RAND1 SEED !
+		
+		INTS
+		SIZE 0 DO
+			RAND OVER !
+			cell +
+		LOOP
+		DROP
+	;
+
+	: SORTINTS
+		
+		INIT
+
+		ms@
+
+		SIZE 1- 0 DO
+
+			\ just walk two ptrs by 1+ in the inner loop
+			INTS 
+			DUP cell +					( -- INTS INTS+1 )
+
+			SIZE 1- I - 0 DO
+
+				OVER @				( -- INTS INTS+1 INTS.value )
+				OVER @				( -- INTS INTS+1 INTS.value INTS+1.value )
+
+				2DUP				( -- INTS INTS+1 INTS.value INTS+1.value INTS.value INTS+1.value )
+				> IF				( -- INTS INTS+1 INTS.value INTS+1.value )
+					3 PICK !		( -- INTS INTS+1 INTS.value )
+					1 PICK !		( -- INTS INTS+1 )
+				ELSE
+					2DROP			( -- INTS INTS+1 )
+				THEN
+
+				cell +
+				SWAP cell +
+				SWAP
+
+			LOOP
+			2DROP
+
+		LOOP
+		
+		ms@ - .
+	;
